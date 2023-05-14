@@ -1,0 +1,49 @@
+{
+  "name": "@hgraph/job-runner",
+  "packageManager": "yarn@3.3.0",
+  "private": true,
+  "dependencies": {
+    "@hgraph/precedent-iso": "workspace:^",
+    "@hgraph/precedent-node": "workspace:^",
+    "axios": "^1.4.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "pino": "^8.14.1",
+    "slonik": "^33.3.1",
+    "typescript": "^5.0.4",
+    "zod": "^3.21.4"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -b -w",
+    "dev": "node dist/index.js | pino-pretty",
+    "run-job-runner": "node dist/index.js",
+    "test:sql": "docker compose run --build db_test_migration",
+    "test": "yarn vitest --threads=false src/tests",
+    "lint": "eslint . --ext .ts",
+    "fix": "yarn fix::lint; yarn fix::format",
+    "fix::lint": "eslint . --ext .ts --fix",
+    "fix::format": "prettier --write .",
+    "check": "yarn check::lint && yarn check::format",
+    "check::lint": "eslint . --ext .ts",
+    "check::format": "prettier --check .",
+    "clean": "yarn clean::dist",
+    "clean::dist": "rm -rf tsconfig.tsbuildinfo dist"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.13",
+    "@types/eslint": "^8.37.0",
+    "@types/express": "^4.17.17",
+    "@types/node": "^20.1.4",
+    "@types/prettier": "^2.7.2",
+    "@typescript-eslint/eslint-plugin": "^5.59.5",
+    "@typescript-eslint/parser": "^5.59.5",
+    "concurrently": "^8.0.1",
+    "eslint": "^8.40.0",
+    "eslint-plugin-simple-import-sort": "^10.0.0",
+    "eslint-plugin-sql": "^2.3.2",
+    "pino-pretty": "^10.0.0",
+    "prettier": "^2.8.8",
+    "vitest": "^0.31.0"
+  }
+}
