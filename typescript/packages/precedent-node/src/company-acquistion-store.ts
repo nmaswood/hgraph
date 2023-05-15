@@ -22,14 +22,24 @@ export class PsqlCompanyAcquistionStore implements CompanyAcquisitionStore {
     acqs: CompanyAcquisition[]
   ): Promise<CompanyAcquisition[]> {
     const companyValues = acqs.map(
-      (acq) =>
-        sql.fragment`(${acq.parentCompanyId}, ${acq.acquiredCompanyId},
-                      ${acq.mergedIntoParentCompany})`
+      ({ parentCompanyId, acquiredCompanyId, mergedIntoParentCompany }) => {
+        const integrityToken = [parentCompanyId, acquiredCompanyId]
+          .sort()
+          .join("-");
+
+        return sql.fragment`(${parentCompanyId}, ${acquiredCompanyId},
+                      ${mergedIntoParentCompany},
+                      ${integrityToken}
+
+                          )`;
+      }
     );
 
     const result = await cnx.query(
       sql.type(ZCompanyAcquisition)`
-INSERT INTO company_acquisition (${FIELDS})
+INSERT INTO company_acquisition (
+parent_company_id, acquired_company_id, merged_into_parent_company, company_ids_integrity_token
+)
 VALUES
 ${sql.join(companyValues, sql.fragment`, `)}
 ON CONFLICT (parent_company_id, acquired_company_id) DO UPDATE

@@ -1,4 +1,8 @@
-import { PersonEmployment, ZPersonEmployment } from "@hgraph/precedent-iso";
+import {
+  PersonEmployment,
+  PersonEmploymentDate,
+  ZPersonEmployment,
+} from "@hgraph/precedent-iso";
 import { DatabasePool, DatabasePoolConnection, sql } from "slonik";
 
 export interface PersonEmploymentStore {
@@ -21,27 +25,24 @@ export class PsqlPersonEmploymentStore implements PersonEmploymentStore {
     cnx: DatabasePoolConnection,
     pes: PersonEmployment[]
   ): Promise<PersonEmployment[]> {
-    const companyValues = pes.map(
-      (pe) =>
-        sql.fragment`(${pe.personId}, ${pe.companyId},
+    const companyValues = pes.map((pe) => {
+      const { startDate, endDate } = PersonEmploymentDate.fromStatus(pe.status);
+      return sql.fragment`(${pe.personId}, ${pe.companyId},
                       ${pe.employmentTitle},
                       ${processTitle(pe.employmentTitle)},
                       
-                      ${sql.date(pe.status.startDate)},
-                      ${
-                        pe.status.type === "left_company"
-                          ? sql.date(pe.status.endDate)
-                          : null
-                      }
-                     )`
-    );
+                      ${startDate ? sql.date(startDate) : null},
+                      ${endDate ? sql.date(endDate) : null}
+
+                     )`;
+    });
 
     const result = await cnx.query(
       sql.type(ZPersonEmployment)`
 INSERT INTO person_employment(person_id, company_id, raw_employment_title,  processed_employment_title, start_date, end_date)
 VALUES
 ${sql.join(companyValues, sql.fragment`, `)}
-ON CONFLICT (person_id, company_id) DO UPDATE
+ON CONFLICT (person_id, company_id, start_date, end_date) DO UPDATE
 SET
 raw_employment_title = EXCLUDED.raw_employment_title,
 processed_employment_title = EXCLUDED.processed_employment_title,

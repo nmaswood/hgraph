@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { assertNever } from "../assert-never";
 
 export interface Company {
   companyId: number;
@@ -17,6 +18,7 @@ export interface PersonEmployment {
   personId: number;
   employmentTitle: string;
   status:
+    | { type: "unknown" }
     | {
         type: "current_employee";
         startDate: Date;
@@ -61,7 +63,7 @@ export const ZPersonEmployment = z
     company_id: z.number(),
     person_id: z.number(),
     employment_title: z.string(),
-    start_date: z.string(),
+    start_date: z.string().nullish(),
     end_date: z.string().nullish(),
   })
   .transform(
@@ -69,13 +71,45 @@ export const ZPersonEmployment = z
       companyId: v.company_id,
       personId: v.person_id,
       employmentTitle: v.employment_title,
-      status:
-        v.end_date == null
-          ? { type: "current_employee", startDate: new Date(v.start_date) }
-          : {
-              type: "left_company",
-              startDate: new Date(v.start_date),
-              endDate: new Date(v.end_date),
-            },
+      status: PersonEmploymentDate.toStatus(v.start_date, v.end_date),
     })
   );
+
+export class PersonEmploymentDate {
+  static fromStatus(status: PersonEmployment["status"]): {
+    startDate: Date | null;
+    endDate: Date | null;
+  } {
+    switch (status.type) {
+      case "unknown":
+        return { startDate: null, endDate: null };
+      case "current_employee":
+        return { startDate: status.startDate, endDate: null };
+      case "left_company":
+        return { startDate: status.startDate, endDate: status.endDate };
+      default:
+        assertNever(status);
+    }
+  }
+
+  static toStatus(
+    startDate: string | null | undefined,
+    endDate: string | null | undefined
+  ): PersonEmployment["status"] {
+    if (startDate && endDate) {
+      return {
+        type: "left_company",
+        startDate: new Date(startDate),
+        endDate: new Date(endDate),
+      };
+    } else if (startDate) {
+      return {
+        type: "current_employee",
+        startDate: new Date(startDate),
+      };
+    } else if (endDate) {
+      throw new Error("Invalid data");
+    }
+    return { type: "unknown" };
+  }
+}

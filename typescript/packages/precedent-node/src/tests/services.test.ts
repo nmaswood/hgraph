@@ -4,7 +4,7 @@ import {
   PersonEmployment,
 } from "@hgraph/precedent-iso";
 import { sql } from "slonik";
-import { beforeEach, describe, expect, it, test } from "vitest";
+import { beforeEach, expect, test } from "vitest";
 
 import { PsqlCompanyAcquistionStore } from "../company-acquistion-store";
 import { PsqlCompanyStore } from "../company-store";
@@ -32,7 +32,7 @@ beforeEach(async () => {
   await pool.query(sql.unsafe`TRUNCATE TABLE company CASCADE`);
 });
 
-it("CompanyStore#upsertmany works for the empty case", async () => {
+test("CompanyStore#upsertmany works for the empty case", async () => {
   const { companyStore } = await setup();
 
   expect(await companyStore.upsertMany([])).toEqual([]);
@@ -67,7 +67,7 @@ test("CompanyStore#upsertMany works for a simple case", async () => {
   ]);
 });
 
-it("CompanyAcquisitionStore#upsertmany works for the empty case", async () => {
+test("CompanyAcquisitionStore#upsertmany works for the empty case", async () => {
   const { companyAcquisitionStore } = await setup();
 
   expect(await companyAcquisitionStore.upsertMany([])).toEqual([]);
@@ -102,7 +102,25 @@ test("CompanyStore#upsertMany works for a simple case", async () => {
   ]);
 });
 
-it("PersonEmploymentStore#upsertmany works for the empty case", async () => {
+test("CompanyStore#upsertMany prevents basic cycles", async () => {
+  const { companyAcquisitionStore } = await setup();
+  const acqs: CompanyAcquisition[] = [
+    {
+      acquiredCompanyId: 1,
+      parentCompanyId: 2,
+      mergedIntoParentCompany: true,
+    },
+    {
+      acquiredCompanyId: 2,
+      parentCompanyId: 1,
+      mergedIntoParentCompany: false,
+    },
+  ];
+
+  await expect(companyAcquisitionStore.upsertMany(acqs)).rejects.toThrow();
+});
+
+test("PersonEmploymentStore#upsertmany works for the empty case", async () => {
   const { personEmploymentStore } = await setup();
 
   expect(await personEmploymentStore.upsertMany([])).toEqual([]);

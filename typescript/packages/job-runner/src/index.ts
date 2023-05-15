@@ -6,7 +6,8 @@ import {
   PsqlPersonEmploymentStore,
 } from "@hgraph/precedent-node";
 import * as dotenv from "dotenv";
-import * as P from "fs/promises";
+
+import * as D from "./data";
 
 dotenv.config();
 
@@ -22,13 +23,13 @@ async function start(settings: Settings) {
       const companyStore = new PsqlCompanyStore(pool);
       const companyAcquisitionStore = new PsqlCompanyAcquistionStore(pool);
       const personEmployeeStore = new PsqlPersonEmploymentStore(pool);
+      LOGGER.info("Upserting data");
 
-      const companyAcquisitions = await P.readFile(
-        "../data/company-acquisitions.json",
-        "utf-8"
-      );
+      await companyStore.upsertMany(D.COMPANY_DATA);
+      await companyAcquisitionStore.upsertMany(D.ACQ_DATA);
+      await personEmployeeStore.upsertMany(D.PE_DATA);
 
-      throw new Error("not implemented");
+      break;
     }
     default:
       assertNever(settings.jobType);
