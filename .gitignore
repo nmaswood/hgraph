@@ -135,3 +135,5 @@ dist
 .Trashes
 ehthumbs.db
 Thumbs.db
+### neo4j volume
+data

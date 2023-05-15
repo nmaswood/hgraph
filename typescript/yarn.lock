@@ -744,6 +744,7 @@ __metadata:
     "@typescript-eslint/parser": ^5.59.5
     eslint: ^8.40.0
     eslint-plugin-simple-import-sort: ^10.0.0
+    neo4j-driver: ^5.8.0
     prettier: ^2.8.8
     typescript: ^5.0.4
     vitest: ^0.31.0
@@ -4591,6 +4592,35 @@ __metadata:
   languageName: node
   linkType: hard
 
+"neo4j-driver-bolt-connection@npm:^5.8.0":
+  version: 5.8.0
+  resolution: "neo4j-driver-bolt-connection@npm:5.8.0"
+  dependencies:
+    buffer: ^6.0.3
+    neo4j-driver-core: ^5.8.0
+    string_decoder: ^1.3.0
+  checksum: 81b4463ebde7b3d4d49232bbd4f6930ca4a424e31b2476eadb873c741ea473b51d8adcf58c7724895e85215d7ae03a798ff76b2df114116c5fe3c9b4f9f69e3c
+  languageName: node
+  linkType: hard
+
+"neo4j-driver-core@npm:^5.8.0":
+  version: 5.8.0
+  resolution: "neo4j-driver-core@npm:5.8.0"
+  checksum: cfc55f86385268d858ae403924323401e256807edec79b91eeac00d58324420d72a3203f48ac8914853d0886edc3efcc992c7b8113c3d26a92575979cdaaafd6
+  languageName: node
+  linkType: hard
+
+"neo4j-driver@npm:^5.8.0":
+  version: 5.8.0
+  resolution: "neo4j-driver@npm:5.8.0"
+  dependencies:
+    neo4j-driver-bolt-connection: ^5.8.0
+    neo4j-driver-core: ^5.8.0
+    rxjs: ^7.8.0
+  checksum: 93cae56e45a0735afe468e364871316566976cab7e9e9e415f503dc17e07726977daa3028f6a994655dc9d1ec033170b61be4eb55ec0c76859bcc8f6ac86895b
+  languageName: node
+  linkType: hard
+
 "next@npm:^13.4.2":
   version: 13.4.2
   resolution: "next@npm:13.4.2"
@@ -6180,7 +6210,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"string_decoder@npm:^1.1.1":
+"string_decoder@npm:^1.1.1, string_decoder@npm:^1.3.0":
   version: 1.3.0
   resolution: "string_decoder@npm:1.3.0"
   dependencies:

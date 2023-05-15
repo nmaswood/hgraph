@@ -6,40 +6,46 @@ import {
 import { sql } from "slonik";
 import { beforeEach, expect, test } from "vitest";
 
-import { PsqlCompanyAcquistionStore } from "../company-acquistion-store";
-import { PsqlCompanyStore } from "../company-store";
+import { PsqlCompanyAcquistionWriter } from "../company-acquistion-store";
+import { PsqlCompanyWriter } from "../company-writer";
 import { dataBasePool } from "../data-base-pool";
 import { PsqlPersonEmploymentStore } from "../person-employment-store";
 import { TEST_SETTINGS } from "./test-settings";
+import { createSession } from "../neo4j";
 
 async function setup() {
   const pool = await dataBasePool(TEST_SETTINGS.sqlUri);
-  const companyStore = new PsqlCompanyStore(pool);
-  const companyAcquisitionStore = new PsqlCompanyAcquistionStore(pool);
+  const session = await createSession(TEST_SETTINGS.neo);
+  const sqlCompanyWriter = new PsqlCompanyWriter(pool);
+  const companyAcquisitionStore = new PsqlCompanyAcquistionWriter(pool);
   const personEmploymentStore = new PsqlPersonEmploymentStore(pool);
 
   return {
     pool,
-    companyStore,
+    session,
+    sqlCompanyWriter,
     companyAcquisitionStore,
     personEmploymentStore,
   };
 }
 
 beforeEach(async () => {
-  const { pool } = await setup();
+  const { pool, session } = await setup();
 
   await pool.query(sql.unsafe`TRUNCATE TABLE company CASCADE`);
+  await session.executeWrite((trx) => {
+    trx.run("MATCH (n) DETACH DELETE n");
+  });
 });
 
-test("CompanyStore#upsertmany works for the empty case", async () => {
-  const { companyStore } = await setup();
+test("CompanyWriter#upsertmany works for the empty case", async () => {
+  const { sqlCompanyWriter } = await setup();
 
-  expect(await companyStore.upsertMany([])).toEqual([]);
+  expect(await sqlCompanyWriter.upsertMany([])).toEqual([]);
 });
 
-test("CompanyStore#upsertMany works for a simple case", async () => {
-  const { companyStore } = await setup();
+test("CompanyWriter#upsertMany works for a simple case", async () => {
+  const { sqlCompanyWriter } = await setup();
   const companies: Company[] = [
     {
       companyId: 1,
@@ -53,7 +59,7 @@ test("CompanyStore#upsertMany works for a simple case", async () => {
     },
   ];
 
-  expect(await companyStore.upsertMany(companies)).toEqual([
+  expect(await sqlCompanyWriter.upsertMany(companies)).toEqual([
     {
       companyId: 1,
       companyName: "Company 1",
@@ -73,7 +79,7 @@ test("CompanyAcquisitionStore#upsertmany works for the empty case", async () => 
   expect(await companyAcquisitionStore.upsertMany([])).toEqual([]);
 });
 
-test("CompanyStore#upsertMany works for a simple case", async () => {
+test("CompanyWriter#upsertMany works for a simple case", async () => {
   const { companyAcquisitionStore } = await setup();
   const acqs: CompanyAcquisition[] = [
     {
@@ -102,7 +108,7 @@ test("CompanyStore#upsertMany works for a simple case", async () => {
   ]);
 });
 
-test("CompanyStore#upsertMany prevents basic cycles", async () => {
+test("CompanyWriter#upsertMany prevents basic cycles", async () => {
   const { companyAcquisitionStore } = await setup();
   const acqs: CompanyAcquisition[] = [
     {

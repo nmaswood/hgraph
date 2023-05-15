@@ -31,6 +31,7 @@
   },
   "dependencies": {
     "@hgraph/precedent-iso": "workspace:^",
+    "neo4j-driver": "^5.8.0",
     "zod": "^3.21.4"
   }
 }

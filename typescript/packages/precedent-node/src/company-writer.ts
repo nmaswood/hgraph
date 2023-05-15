@@ -1,13 +1,14 @@
 import { Company, ZCompanyModel } from "@hgraph/precedent-iso";
 import { DatabasePool, DatabasePoolConnection, sql } from "slonik";
 
-export interface CompanyStore {
+import { Session } from "neo4j-driver";
+export interface CompanyWriter {
   upsertMany(companies: Company[]): Promise<Company[]>;
 }
 
 const COMPANY_FIELDS = sql.fragment`company_id, processed_company_name as company_name, headcount`;
 
-export class PsqlCompanyStore implements CompanyStore {
+export class PsqlCompanyWriter implements CompanyWriter {
   constructor(private readonly pool: DatabasePool) {}
 
   async upsertMany(companies: Company[]): Promise<Company[]> {
@@ -47,4 +48,23 @@ RETURNING ${COMPANY_FIELDS}
 
 function processCompanyName(name: string): string {
   return name.trim();
+}
+export class Neo4jCompanyWriter implements CompanyWriter {
+  constructor(private readonly session: Session) {}
+
+  async upsertMany(companies: Company[]): Promise<Company[]> {
+    if (companies.length === 0) {
+      return [];
+    }
+    await this.session.executeWrite(async (txc) => {
+      for (const { companyId, companyName, headcount } of companies) {
+        await txc.run(
+          "MERGE(:Company{id: $companyId, name: $companyName, headcount: $headcount})",
+          { companyId, companyName, headcount }
+        );
+      }
+    });
+
+    return companies;
+  }
 }

@@ -1,8 +1,8 @@
 import { assertNever } from "@hgraph/precedent-iso";
 import {
   dataBasePool,
-  PsqlCompanyAcquistionStore,
-  PsqlCompanyStore,
+  PsqlCompanyAcquistionWriter,
+  PsqlCompanyWriter,
   PsqlPersonEmploymentStore,
 } from "@hgraph/precedent-node";
 import * as dotenv from "dotenv";
@@ -20,8 +20,8 @@ async function start(settings: Settings) {
   switch (settings.jobType) {
     case "base-import": {
       const pool = await dataBasePool(settings.sql.uri);
-      const companyStore = new PsqlCompanyStore(pool);
-      const companyAcquisitionStore = new PsqlCompanyAcquistionStore(pool);
+      const companyStore = new PsqlCompanyWriter(pool);
+      const companyAcquisitionStore = new PsqlCompanyAcquistionWriter(pool);
       const personEmployeeStore = new PsqlPersonEmploymentStore(pool);
       LOGGER.info("Upserting data");
 
