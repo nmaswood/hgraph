@@ -27,9 +27,9 @@ CREATE TABLE
     company_id int NOT NULL,
     raw_employment_title text CHECK (char_length(raw_employment_title) <= 1024) NOT NULL,
     processed_employment_title text CHECK (char_length(processed_employment_title) <= 1024) NOT NULL,
-    started_at TIMESTAMPTZ NOT NULL,
-    ended_at TIMESTAMPTZ CHECK (ended_at >= started_at),
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW ()
+    start_date TIMESTAMPTZ NOT NULL,
+    end_date DATE CHECK (end_date >= start_date),
+    created_at DATE NOT NULL DEFAULT NOW ()
   );
 
 CREATE UNIQUE INDEX IF NOT EXISTS "person_employment_idx" ON "person_employment" ("person_id", "company_id");

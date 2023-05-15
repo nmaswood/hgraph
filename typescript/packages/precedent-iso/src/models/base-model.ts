@@ -19,7 +19,7 @@ export interface PersonEmployment {
   status:
     | {
         type: "current_employee";
-        startedAt: Date;
+        startDate: Date;
       }
     | {
         type: "left_company";
@@ -61,8 +61,8 @@ export const ZPersonEmployment = z
     company_id: z.number(),
     person_id: z.number(),
     employment_title: z.string(),
-    start_date: z.date(),
-    end_date: z.date().nullish(),
+    start_date: z.string(),
+    end_date: z.string().nullish(),
   })
   .transform(
     (v): PersonEmployment => ({
@@ -71,11 +71,11 @@ export const ZPersonEmployment = z
       employmentTitle: v.employment_title,
       status:
         v.end_date == null
-          ? { type: "current_employee", startedAt: v.start_date }
+          ? { type: "current_employee", startDate: new Date(v.start_date) }
           : {
               type: "left_company",
-              startDate: v.start_date,
-              endDate: v.end_date,
+              startDate: new Date(v.start_date),
+              endDate: new Date(v.end_date),
             },
     })
   );

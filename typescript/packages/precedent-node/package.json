@@ -18,8 +18,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "watch": "tsc --build -w",
-    "test": "vitest src/tests",
+    "watch": "tsc -b -w",
+    "test": "TZ=UTC vitest src/tests",
     "fix": "yarn fix::lint; yarn fix::format",
     "fix::lint": "eslint . --ext .ts --fix",
     "fix::format": "prettier --write .",

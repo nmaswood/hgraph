@@ -1,5 +1,4 @@
 import { Company, ZCompanyModel } from "@hgraph/precedent-iso";
-
 import { DatabasePool, DatabasePoolConnection, sql } from "slonik";
 
 export interface CompanyStore {
@@ -26,7 +25,6 @@ export class PsqlCompanyStore implements CompanyStore {
       (company) =>
         sql.fragment`(${company.companyId}, ${company.companyName},
                       ${processCompanyName(company.companyName)},
-
                       ${company.headcount ?? null})`
     );
 
@@ -47,6 +45,6 @@ RETURNING ${COMPANY_FIELDS}
   }
 }
 
-export function processCompanyName(name: string): string {
+function processCompanyName(name: string): string {
   return name.trim();
 }
