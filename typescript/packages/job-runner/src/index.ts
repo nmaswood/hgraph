@@ -6,6 +6,7 @@ import {
   PsqlPersonEmploymentStore,
 } from "@hgraph/precedent-node";
 import * as dotenv from "dotenv";
+import * as P from "fs/promises";
 
 dotenv.config();
 
@@ -21,6 +22,11 @@ async function start(settings: Settings) {
       const companyStore = new PsqlCompanyStore(pool);
       const companyAcquisitionStore = new PsqlCompanyAcquistionStore(pool);
       const personEmployeeStore = new PsqlPersonEmploymentStore(pool);
+
+      const companyAcquisitions = await P.readFile(
+        "../data/company-acquisitions.json",
+        "utf-8"
+      );
 
       throw new Error("not implemented");
     }
