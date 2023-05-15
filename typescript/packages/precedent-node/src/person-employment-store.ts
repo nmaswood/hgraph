@@ -104,7 +104,7 @@ export class Neo4jPersonEmploymentWriter implements PersonEmploymentWriter {
             case "current_employee":
               await txc.run(
                 `MATCH (a:Company{id: $companyId}), (b:Person{id: $personId}) MERGE (b)-[r:WORKS_AT]->(a)
-                SET r.start_date = $startDate
+                SET r.start_date = $startDate, r.label = "WORKED_AT"
                 `,
                 {
                   companyId,
@@ -117,7 +117,7 @@ export class Neo4jPersonEmploymentWriter implements PersonEmploymentWriter {
             case "left_company":
               await txc.run(
                 `MATCH (a:Company{id: $companyId}), (b:Person{id: $personId}) MERGE (b)-[r:WORKED_AT]->(a)
-                SET r.start_date = $startDate, r.end_date = $endDate
+                SET r.start_date = $startDate, r.end_date = $endDate, r.label = "WORKED_AT"
                 `,
                 {
                   companyId,
@@ -131,6 +131,7 @@ export class Neo4jPersonEmploymentWriter implements PersonEmploymentWriter {
             case "unknown":
               await txc.run(
                 `MATCH (a:Company{id: $companyId}), (b:Person{id: $personId}) MERGE (b)-[r:WORKS_AT]->(a)
+                  SET r.label = "WORKED_AT"
                 `,
                 {
                   companyId,

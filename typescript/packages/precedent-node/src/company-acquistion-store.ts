@@ -89,7 +89,10 @@ export class Neo4jCompanyAcquistionWriter implements CompanyAcquisitionWriter {
           mergedIntoParentCompany,
         } of acqs) {
           await txc.run(
-            "MATCH (a:Company{id: $parentCompanyId}), (b:Company{id: $acquiredCompanyId}) MERGE (a)-[:ACQUIRED]->(b)",
+            `MATCH (a:Company{id: $parentCompanyId}), (b:Company{id: $acquiredCompanyId}) MERGE (a)-[r:ACQUIRED]->(b)
+            SET r.label = "ACQUIRED"
+
+            `,
             {
               parentCompanyId,
               acquiredCompanyId,
@@ -97,7 +100,9 @@ export class Neo4jCompanyAcquistionWriter implements CompanyAcquisitionWriter {
           );
           if (mergedIntoParentCompany) {
             await txc.run(
-              "MATCH (a:Company{id: $parentCompanyId}), (b:Company{id: $acquiredCompanyId}) MERGE (b)-[:MERGED_INTO]->(a)",
+              `MATCH (a:Company{id: $parentCompanyId}), (b:Company{id: $acquiredCompanyId}) MERGE (b)-[r:MERGED_INTO]->(a)
+            SET r.label = "MERGED_INTO"
+              `,
               {
                 parentCompanyId,
                 acquiredCompanyId,

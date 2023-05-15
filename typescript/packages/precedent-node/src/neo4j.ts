@@ -1,16 +1,15 @@
 import { auth, Driver, driver } from "neo4j-driver";
+import { z } from "zod";
 
-export interface SessionArguments {
-  uri: string;
-  username: string;
-  password: string;
-  database: string;
-}
+export const ZNeoArguments = z.object({
+  uri: z.string().min(1),
+  username: z.string().min(1),
+  password: z.string().min(1),
+  database: z.string().min(1),
+});
 
-export function getDriver({
-  uri,
-  username,
-  password,
-}: SessionArguments): Driver {
+export type NeoArguments = z.infer<typeof ZNeoArguments>;
+
+export function getDriver({ uri, username, password }: NeoArguments): Driver {
   return driver(uri, auth.basic(username, password));
 }

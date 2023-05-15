@@ -1,3 +1,4 @@
+import { ZNeoArguments } from "@hgraph/precedent-node";
 import { z } from "zod";
 
 const ZJobType = z.enum(["base-import"]);
@@ -7,12 +8,7 @@ const ZSettings = z.object({
     uri: z.string(),
   }),
   jobType: ZJobType,
-  neo: z.object({
-    uri: z.string(),
-    username: z.string(),
-    password: z.string(),
-    database: z.string(),
-  }),
+  neo: ZNeoArguments,
 });
 
 export type Settings = z.infer<typeof ZSettings>;

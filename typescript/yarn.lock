@@ -149,6 +149,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@babel/runtime-corejs3@npm:^7.21.5":
+  version: 7.21.5
+  resolution: "@babel/runtime-corejs3@npm:7.21.5"
+  dependencies:
+    core-js-pure: ^3.25.1
+    regenerator-runtime: ^0.13.11
+  checksum: c349a15675067f45d78f4c94ba111227a43608a261feb3d770168e4c6718b25823a143af9201e946511eb290d6d319d2f893eb87b14020fadf49cebd77269139
+  languageName: node
+  linkType: hard
+
 "@babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.18.3, @babel/runtime@npm:^7.21.0, @babel/runtime@npm:^7.5.5, @babel/runtime@npm:^7.8.7":
   version: 7.21.0
   resolution: "@babel/runtime@npm:7.21.0"
@@ -672,6 +682,7 @@ __metadata:
     eslint-plugin-simple-import-sort: ^10.0.0
     flagsmith: ^3.18.3
     logrocket: ^4.0.1
+    neovis.js: ^2.0.4
     next: ^13.4.2
     prettier: ^2.8.8
     react: ^18.2.0
@@ -2414,6 +2425,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"core-js-pure@npm:^3.25.1":
+  version: 3.30.2
+  resolution: "core-js-pure@npm:3.30.2"
+  checksum: e0e012fe94e38663d837410baac62efe05d0c7431e3fbaa70c65f51eb980da9c3add225eca04208d576bc0d92cefeca9a4f7671a65fd84fd7dfc92d8618dddfd
+  languageName: node
+  linkType: hard
+
 "cors@npm:^2.8.5":
   version: 2.8.5
   resolution: "cors@npm:2.8.5"
@@ -2524,7 +2542,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"deepmerge@npm:^4.2.2":
+"deepmerge@npm:^4.2.2, deepmerge@npm:^4.3.1":
   version: 4.3.1
   resolution: "deepmerge@npm:4.3.1"
   checksum: 2024c6a980a1b7128084170c4cf56b0fd58a63f2da1660dcfe977415f27b17dbe5888668b59d0b063753f3220719d5e400b7f113609489c90160bb9a5518d052
@@ -4592,6 +4610,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"neo4j-driver-bolt-connection@npm:^4.4.10":
+  version: 4.4.10
+  resolution: "neo4j-driver-bolt-connection@npm:4.4.10"
+  dependencies:
+    buffer: ^6.0.3
+    neo4j-driver-core: ^4.4.10
+    string_decoder: ^1.3.0
+  checksum: e7bdb00c57c6287cb558d20321966871e4cbe6988497e546693255a4ce20f2030b618f50bf5cee10cf5330d699501a0b0547bc0de6a38c512955985b7783aca1
+  languageName: node
+  linkType: hard
+
 "neo4j-driver-bolt-connection@npm:^5.8.0":
   version: 5.8.0
   resolution: "neo4j-driver-bolt-connection@npm:5.8.0"
@@ -4603,10 +4632,29 @@ __metadata:
   languageName: node
   linkType: hard
 
+"neo4j-driver-core@npm:^4.4.10, neo4j-driver-core@npm:^4.4.6":
+  version: 4.4.10
+  resolution: "neo4j-driver-core@npm:4.4.10"
+  checksum: 649658dcbe03415946c0621393e9e3cd601682c76a558ec884f7b5c65df58826b37a9a6c6c22f8710c75e1cea0272ed76fcb480b55e6c8d9eb46e022c6a9476b
+  languageName: node
+  linkType: hard
+
 "neo4j-driver-core@npm:^5.8.0":
   version: 5.8.0
   resolution: "neo4j-driver-core@npm:5.8.0"
   checksum: cfc55f86385268d858ae403924323401e256807edec79b91eeac00d58324420d72a3203f48ac8914853d0886edc3efcc992c7b8113c3d26a92575979cdaaafd6
+  languageName: node
+  linkType: hard
+
+"neo4j-driver@npm:^4.4.6":
+  version: 4.4.10
+  resolution: "neo4j-driver@npm:4.4.10"
+  dependencies:
+    "@babel/runtime": ^7.5.5
+    neo4j-driver-bolt-connection: ^4.4.10
+    neo4j-driver-core: ^4.4.10
+    rxjs: ^6.6.3
+  checksum: d7d42bbff40a5014817f2e00d3ceea83985d30fbb4135ae16f6cdb7c9e5fd5bc25a87dea2b000a0bd8604889320ec85f8335e394b7a1ccd5a9614e6d043a6db4
   languageName: node
   linkType: hard
 
@@ -4618,6 +4666,19 @@ __metadata:
     neo4j-driver-core: ^5.8.0
     rxjs: ^7.8.0
   checksum: 93cae56e45a0735afe468e364871316566976cab7e9e9e415f503dc17e07726977daa3028f6a994655dc9d1ec033170b61be4eb55ec0c76859bcc8f6ac86895b
+  languageName: node
+  linkType: hard
+
+"neovis.js@npm:^2.0.4":
+  version: 2.0.4
+  resolution: "neovis.js@npm:2.0.4"
+  dependencies:
+    "@babel/runtime-corejs3": ^7.21.5
+    deepmerge: ^4.3.1
+    neo4j-driver: ^4.4.6
+    neo4j-driver-core: ^4.4.6
+    vis-network: ^9.1.6
+  checksum: 8cfd095a4d308d64cc61d9e0b102abc475be1364a0e9f427ff1b438f1fbde1285b07b21acbe165f92a98f6be0df31fc3a7f5279664903eb77ecab8b5d2527eaf
   languageName: node
   linkType: hard
 
@@ -5787,6 +5848,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"rxjs@npm:^6.6.3":
+  version: 6.6.7
+  resolution: "rxjs@npm:6.6.7"
+  dependencies:
+    tslib: ^1.9.0
+  checksum: bc334edef1bb8bbf56590b0b25734ba0deaf8825b703256a93714308ea36dff8a11d25533671adf8e104e5e8f256aa6fdfe39b2e248cdbd7a5f90c260acbbd1b
+  languageName: node
+  linkType: hard
+
 "rxjs@npm:^7.8.0":
   version: 7.8.1
   resolution: "rxjs@npm:7.8.1"
@@ -6430,7 +6500,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tslib@npm:^1.8.1":
+"tslib@npm:^1.8.1, tslib@npm:^1.9.0":
   version: 1.14.1
   resolution: "tslib@npm:1.14.1"
   checksum: dbe628ef87f66691d5d2959b3e41b9ca0045c3ee3c7c7b906cc1e328b39f199bb1ad9e671c39025bd56122ac57dfbf7385a94843b1cc07c60a4db74795829acd
@@ -6620,6 +6690,21 @@ __metadata:
   version: 1.1.2
   resolution: "vary@npm:1.1.2"
   checksum: ae0123222c6df65b437669d63dfa8c36cee20a504101b2fcd97b8bf76f91259c17f9f2b4d70a1e3c6bbcee7f51b28392833adb6b2770b23b01abec84e369660b
+  languageName: node
+  linkType: hard
+
+"vis-network@npm:^9.1.6":
+  version: 9.1.6
+  resolution: "vis-network@npm:9.1.6"
+  peerDependencies:
+    "@egjs/hammerjs": ^2.0.0
+    component-emitter: ^1.3.0
+    keycharm: ^0.2.0 || ^0.3.0 || ^0.4.0
+    timsort: ^0.3.0
+    uuid: ^3.4.0 || ^7.0.0 || ^8.0.0 || ^9.0.0
+    vis-data: ^6.3.0 || ^7.0.0
+    vis-util: ^5.0.1
+  checksum: a3e5de0c21a2045708a989d4b07749e207ee135a0f4c0a9fc2c23e19e662391d1532c17c9402eb84e3e6a1d3fe85fefa220973e79c845032cbcf228931096e84
   languageName: node
   linkType: hard
 
