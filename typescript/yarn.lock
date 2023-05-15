@@ -737,6 +737,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@hgraph/precedent-node@workspace:packages/precedent-node"
   dependencies:
+    "@hgraph/precedent-iso": "workspace:^"
     "@types/eslint": ^8.37.0
     "@types/prettier": ^2.7.2
     "@typescript-eslint/eslint-plugin": ^5.59.5
