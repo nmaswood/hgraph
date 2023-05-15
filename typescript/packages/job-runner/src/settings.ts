@@ -7,6 +7,12 @@ const ZSettings = z.object({
     uri: z.string(),
   }),
   jobType: ZJobType,
+  neo: z.object({
+    uri: z.string(),
+    username: z.string(),
+    password: z.string(),
+    database: z.string(),
+  }),
 });
 
 export type Settings = z.infer<typeof ZSettings>;
@@ -17,4 +23,10 @@ export const SETTINGS = ZSettings.parse({
     uri: process.env["SQL_URI"] ?? "test",
   },
   jobType: process.env["JOB_TYPE"] ?? "base-import",
+  neo: {
+    uri: process.env["NEO4J_URI"],
+    username: process.env["NEO4J_USERNAME"],
+    password: process.env["NEO4J_PASSWORD"],
+    database: process.env["NEO4J_DATABASE"],
+  },
 });

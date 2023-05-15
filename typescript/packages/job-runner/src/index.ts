@@ -1,9 +1,16 @@
 import { assertNever } from "@hgraph/precedent-iso";
 import {
   dataBasePool,
+  DualCompanyAcquisitionWriter,
+  DualCompanyWriter,
+  DualPersonEmploymentWriter,
+  getDriver,
+  Neo4jCompanyAcquistionWriter,
+  Neo4jCompanyWriter,
+  Neo4jPersonEmploymentWriter,
   PsqlCompanyAcquistionWriter,
   PsqlCompanyWriter,
-  PsqlPersonEmploymentStore,
+  PsqlPersonEmploymentWriter,
 } from "@hgraph/precedent-node";
 import * as dotenv from "dotenv";
 
@@ -19,15 +26,36 @@ LOGGER.info("Starting job runner...");
 async function start(settings: Settings) {
   switch (settings.jobType) {
     case "base-import": {
+      // dep injection
       const pool = await dataBasePool(settings.sql.uri);
-      const companyStore = new PsqlCompanyWriter(pool);
-      const companyAcquisitionStore = new PsqlCompanyAcquistionWriter(pool);
-      const personEmployeeStore = new PsqlPersonEmploymentStore(pool);
-      LOGGER.info("Upserting data");
+      const driver = getDriver(settings.neo);
+      const companyWriter = new DualCompanyWriter(
+        new PsqlCompanyWriter(pool),
+        new Neo4jCompanyWriter(driver)
+      );
 
-      await companyStore.upsertMany(D.COMPANY_DATA);
-      await companyAcquisitionStore.upsertMany(D.ACQ_DATA);
-      await personEmployeeStore.upsertMany(D.PE_DATA);
+      const personEmployeeWriter = new DualPersonEmploymentWriter(
+        new PsqlPersonEmploymentWriter(pool),
+        new Neo4jPersonEmploymentWriter(driver)
+      );
+
+      const companyAcquisitionWriter = new DualCompanyAcquisitionWriter(
+        new PsqlCompanyAcquistionWriter(pool),
+
+        new Neo4jCompanyAcquistionWriter(driver)
+      );
+
+      LOGGER.info("Upserting companies");
+      await companyWriter.upsertMany(D.COMPANY_DATA);
+      LOGGER.info("Upserting acquisitions");
+      await companyAcquisitionWriter.upsertMany(D.ACQ_DATA);
+      LOGGER.info("Upserting employees");
+      await personEmployeeWriter.upsertMany(D.PE_DATA);
+
+      LOGGER.info("Upserting Finished");
+
+      await driver.close();
+      await pool.end();
 
       break;
     }

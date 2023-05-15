@@ -9,33 +9,27 @@ import { beforeEach, expect, test } from "vitest";
 import { PsqlCompanyAcquistionWriter } from "../company-acquistion-store";
 import { PsqlCompanyWriter } from "../company-writer";
 import { dataBasePool } from "../data-base-pool";
-import { PsqlPersonEmploymentStore } from "../person-employment-store";
+import { PsqlPersonEmploymentWriter } from "../person-employment-store";
 import { TEST_SETTINGS } from "./test-settings";
-import { createSession } from "../neo4j";
 
 async function setup() {
   const pool = await dataBasePool(TEST_SETTINGS.sqlUri);
-  const session = await createSession(TEST_SETTINGS.neo);
   const sqlCompanyWriter = new PsqlCompanyWriter(pool);
-  const companyAcquisitionStore = new PsqlCompanyAcquistionWriter(pool);
-  const personEmploymentStore = new PsqlPersonEmploymentStore(pool);
+  const companyAcquisitionWriter = new PsqlCompanyAcquistionWriter(pool);
+  const personEmploymentWriter = new PsqlPersonEmploymentWriter(pool);
 
   return {
     pool,
-    session,
     sqlCompanyWriter,
-    companyAcquisitionStore,
-    personEmploymentStore,
+    companyAcquisitionWriter,
+    personEmploymentWriter,
   };
 }
 
 beforeEach(async () => {
-  const { pool, session } = await setup();
+  const { pool } = await setup();
 
   await pool.query(sql.unsafe`TRUNCATE TABLE company CASCADE`);
-  await session.executeWrite((trx) => {
-    trx.run("MATCH (n) DETACH DELETE n");
-  });
 });
 
 test("CompanyWriter#upsertmany works for the empty case", async () => {
@@ -73,14 +67,14 @@ test("CompanyWriter#upsertMany works for a simple case", async () => {
   ]);
 });
 
-test("CompanyAcquisitionStore#upsertmany works for the empty case", async () => {
-  const { companyAcquisitionStore } = await setup();
+test("CompanyAcquisitionWriter#upsertmany works for the empty case", async () => {
+  const { companyAcquisitionWriter } = await setup();
 
-  expect(await companyAcquisitionStore.upsertMany([])).toEqual([]);
+  expect(await companyAcquisitionWriter.upsertMany([])).toEqual([]);
 });
 
-test("CompanyWriter#upsertMany works for a simple case", async () => {
-  const { companyAcquisitionStore } = await setup();
+test("CompanyAcquisition#upsertMany works for a simple case", async () => {
+  const { companyAcquisitionWriter } = await setup();
   const acqs: CompanyAcquisition[] = [
     {
       acquiredCompanyId: 1,
@@ -94,7 +88,7 @@ test("CompanyWriter#upsertMany works for a simple case", async () => {
     },
   ];
 
-  expect(await companyAcquisitionStore.upsertMany(acqs)).toEqual([
+  expect(await companyAcquisitionWriter.upsertMany(acqs)).toEqual([
     {
       acquiredCompanyId: 1,
       parentCompanyId: 2,
@@ -109,7 +103,7 @@ test("CompanyWriter#upsertMany works for a simple case", async () => {
 });
 
 test("CompanyWriter#upsertMany prevents basic cycles", async () => {
-  const { companyAcquisitionStore } = await setup();
+  const { companyAcquisitionWriter } = await setup();
   const acqs: CompanyAcquisition[] = [
     {
       acquiredCompanyId: 1,
@@ -123,17 +117,17 @@ test("CompanyWriter#upsertMany prevents basic cycles", async () => {
     },
   ];
 
-  await expect(companyAcquisitionStore.upsertMany(acqs)).rejects.toThrow();
+  await expect(companyAcquisitionWriter.upsertMany(acqs)).rejects.toThrow();
 });
 
-test("PersonEmploymentStore#upsertmany works for the empty case", async () => {
-  const { personEmploymentStore } = await setup();
+test("PersonEmploymentWriter#upsertmany works for the empty case", async () => {
+  const { personEmploymentWriter } = await setup();
 
-  expect(await personEmploymentStore.upsertMany([])).toEqual([]);
+  expect(await personEmploymentWriter.upsertMany([])).toEqual([]);
 });
 
-test("PersonEmploymentStore#upsertmany works for a simple case", async () => {
-  const { personEmploymentStore } = await setup();
+test("PersonEmploymentWriter#upsertmany works for a simple case", async () => {
+  const { personEmploymentWriter } = await setup();
 
   const startDate = new Date("December 17, 1995");
   const endDate = new Date("December 17, 2020");
@@ -159,7 +153,7 @@ test("PersonEmploymentStore#upsertmany works for a simple case", async () => {
     },
   ];
 
-  expect(await personEmploymentStore.upsertMany(acqs)).toEqual([
+  expect(await personEmploymentWriter.upsertMany(acqs)).toEqual([
     {
       companyId: 1,
       personId: 2,

@@ -1,7 +1,20 @@
 import { Company, ZCompanyModel } from "@hgraph/precedent-iso";
+import { Driver } from "neo4j-driver";
 import { DatabasePool, DatabasePoolConnection, sql } from "slonik";
 
-import { Session } from "neo4j-driver";
+export class DualCompanyWriter implements CompanyWriter {
+  constructor(
+    private readonly primary: CompanyWriter,
+    private readonly secondary: CompanyWriter
+  ) {}
+
+  async upsertMany(companies: Company[]): Promise<Company[]> {
+    const fromAcid = await this.primary.upsertMany(companies);
+    await this.secondary.upsertMany(fromAcid);
+    return fromAcid;
+  }
+}
+
 export interface CompanyWriter {
   upsertMany(companies: Company[]): Promise<Company[]>;
 }
@@ -49,21 +62,34 @@ RETURNING ${COMPANY_FIELDS}
 function processCompanyName(name: string): string {
   return name.trim();
 }
+
 export class Neo4jCompanyWriter implements CompanyWriter {
-  constructor(private readonly session: Session) {}
+  constructor(private readonly driver: Driver) {}
 
   async upsertMany(companies: Company[]): Promise<Company[]> {
     if (companies.length === 0) {
       return [];
     }
-    await this.session.executeWrite(async (txc) => {
-      for (const { companyId, companyName, headcount } of companies) {
-        await txc.run(
-          "MERGE(:Company{id: $companyId, name: $companyName, headcount: $headcount})",
-          { companyId, companyName, headcount }
-        );
-      }
-    });
+    const session = this.driver.session();
+    try {
+      await session.executeWrite(async (txc) => {
+        for (const { companyId, companyName, headcount } of companies) {
+          if (headcount) {
+            await txc.run(
+              `MERGE(:Company{id: $companyId, name: $companyName, headcount: $headcount})`,
+              { companyId, companyName, headcount }
+            );
+          } else {
+            await txc.run(
+              `MERGE(:Company{id: $companyId, name: $companyName })`,
+              { companyId, companyName }
+            );
+          }
+        }
+      });
+    } finally {
+      await session.close();
+    }
 
     return companies;
   }

@@ -1,6 +1,19 @@
 import { CompanyAcquisition, ZCompanyAcquisition } from "@hgraph/precedent-iso";
+import { Driver } from "neo4j-driver";
 import { DatabasePool, DatabasePoolConnection, sql } from "slonik";
-import { Session } from "neo4j-driver";
+
+export class DualCompanyAcquisitionWriter implements CompanyAcquisitionWriter {
+  constructor(
+    private readonly primary: CompanyAcquisitionWriter,
+    private readonly secondary: CompanyAcquisitionWriter
+  ) {}
+
+  async upsertMany(pes: CompanyAcquisition[]): Promise<CompanyAcquisition[]> {
+    const fromAcid = await this.primary.upsertMany(pes);
+    await this.secondary.upsertMany(fromAcid);
+    return fromAcid;
+  }
+}
 
 export interface CompanyAcquisitionWriter {
   upsertMany(companies: CompanyAcquisition[]): Promise<CompanyAcquisition[]>;
@@ -59,36 +72,43 @@ RETURNING ${FIELDS}
 }
 
 export class Neo4jCompanyAcquistionWriter implements CompanyAcquisitionWriter {
-  constructor(private readonly session: Session) {}
+  constructor(private readonly driver: Driver) {}
 
   async upsertMany(acqs: CompanyAcquisition[]): Promise<CompanyAcquisition[]> {
     if (acqs.length === 0) {
       return [];
     }
-    await this.session.executeWrite(async (txc) => {
-      for (const {
-        parentCompanyId,
-        acquiredCompanyId,
-        mergedIntoParentCompany,
-      } of acqs) {
-        await txc.run(
-          "MATCH (a:Company{id: $parentCompanyId}), (b:Company{id: $acquiredCompanyId}) CREATE (a)-[:ACQUIRED]->(b)",
-          {
-            parentCompanyId,
-            acquiredCompanyId,
-          }
-        );
-        if (mergedIntoParentCompany) {
+
+    const session = this.driver.session();
+
+    try {
+      await session.executeWrite(async (txc) => {
+        for (const {
+          parentCompanyId,
+          acquiredCompanyId,
+          mergedIntoParentCompany,
+        } of acqs) {
           await txc.run(
-            "MATCH (a:Company{id: $parentCompanyId}), (b:Company{id: $acquiredCompanyId}) CREATE (b)-[:MERGED_INTO]->(a)",
+            "MATCH (a:Company{id: $parentCompanyId}), (b:Company{id: $acquiredCompanyId}) MERGE (a)-[:ACQUIRED]->(b)",
             {
               parentCompanyId,
               acquiredCompanyId,
             }
           );
+          if (mergedIntoParentCompany) {
+            await txc.run(
+              "MATCH (a:Company{id: $parentCompanyId}), (b:Company{id: $acquiredCompanyId}) MERGE (b)-[:MERGED_INTO]->(a)",
+              {
+                parentCompanyId,
+                acquiredCompanyId,
+              }
+            );
+          }
         }
-      }
-    });
+      });
+    } finally {
+      await session.close();
+    }
 
     return acqs;
   }

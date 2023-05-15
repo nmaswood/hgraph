@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { assertNever } from "../assert-never";
 
 export interface Company {

@@ -1,4 +1,4 @@
-import { driver, auth } from "neo4j-driver";
+import { auth, Driver, driver } from "neo4j-driver";
 
 export interface SessionArguments {
   uri: string;
@@ -7,19 +7,10 @@ export interface SessionArguments {
   database: string;
 }
 
-export async function createSession({
+export function getDriver({
   uri,
   username,
   password,
-  database,
-}: SessionArguments) {
-  const d = driver(uri, auth.basic(username, password));
-
-  const session = d.session({
-    database,
-  });
-  await session.executeWrite((trx) => {
-    trx.run("RETURN 1");
-  });
-  return session;
+}: SessionArguments): Driver {
+  return driver(uri, auth.basic(username, password));
 }
