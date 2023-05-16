@@ -2,6 +2,7 @@ import { PersonEmploymentDate } from "@hgraph/precedent-iso";
 import {
   CompanyAcquisitionWriter,
   CompanyWriter,
+  FacetService,
   PersonEmploymentWriter,
 } from "@hgraph/precedent-node";
 import express from "express";
@@ -11,7 +12,8 @@ export class DataRouter {
   constructor(
     private readonly companyWriter: CompanyWriter,
     private readonly personEmploymentWriter: PersonEmploymentWriter,
-    private readonly companyAcquisitionWriter: CompanyAcquisitionWriter
+    private readonly companyAcquisitionWriter: CompanyAcquisitionWriter,
+    private readonly facetService: FacetService
   ) {}
   init() {
     const router = express.Router();
@@ -44,6 +46,10 @@ export class DataRouter {
         res.json({ data });
       }
     );
+    router.get("/facets", async (_: express.Request, res: express.Response) => {
+      const data = await this.facetService.getFacets();
+      res.json({ data });
+    });
 
     return router;
   }

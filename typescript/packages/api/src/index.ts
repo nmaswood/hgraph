@@ -24,6 +24,7 @@ import {
   Neo4jPersonEmploymentWriter,
   PsqlCompanyAcquistionWriter,
   PsqlCompanyWriter,
+  PsqlFacetService,
   PsqlPersonEmploymentWriter,
 } from "@hgraph/precedent-node";
 import { DataRouter } from "./routers/data-router";
@@ -67,10 +68,13 @@ async function start() {
 
   const healthRouter = new HealthRouter().init();
 
+  const facetService = new PsqlFacetService(pool);
+
   const dataRouter = new DataRouter(
     companyWriter,
     personEmployeeWriter,
-    companyAcquisitionWriter
+    companyAcquisitionWriter,
+    facetService
   ).init();
 
   app.use("/api/v1/health", healthRouter);

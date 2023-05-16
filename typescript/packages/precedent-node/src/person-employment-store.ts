@@ -104,7 +104,7 @@ export class Neo4jPersonEmploymentWriter implements PersonEmploymentWriter {
             case "current_employee":
               await txc.run(
                 `MATCH (a:Company{id: $companyId}), (b:Person{id: $personId}) MERGE (b)-[r:WORKS_AT]->(a)
-                SET r.start_date = $startDate, r.label = "WORKED_AT"
+                SET r.start_date = $startDate, r.label = "WORKS_AT"
                 `,
                 {
                   companyId,

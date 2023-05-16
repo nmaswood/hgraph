@@ -5,11 +5,9 @@ const endpoint = process.env["PUBLIC_API_ENDPOINT"] as string;
 export default async function proxy(req: NextApiRequest, res: NextApiResponse) {
   const proxy = (() => {
     const path = (req.query.proxy ?? []).slice(1);
-    console.log({ path });
     const asArray = Array.isArray(path) ? path : [path];
     return asArray.join("/");
   })();
-  console.log("FUCCCCK");
 
   try {
     const response = await fetch(`${endpoint}/api/v1/${proxy}`, {

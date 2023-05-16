@@ -1,23 +1,40 @@
+import { assertNever } from "@hgraph/precedent-iso";
 import {
   AppBar,
+  Autocomplete,
   Box,
   Button,
   Checkbox,
+  FormControl,
   FormControlLabel,
   InputLabel,
+  MenuItem,
+  Paper,
+  Select,
   Snackbar,
   TextField,
   Typography,
 } from "@mui/material";
 import * as React from "react";
 
+import { useFetchFacets } from "../src/hooks/use-get-facets";
 import { useWriteCompany } from "../src/hooks/use-write-company";
 import { useWriteCompanyAcquisition } from "../src/hooks/use-write-company-acquisition";
 import { useWritePersonEmployment } from "../src/hooks/use-write-person-employment";
+import { CypherQuery } from "../src/query";
+import {
+  CompanySearchWidget,
+  PersonSearchWidget,
+  SearchWidgetState,
+  useManageWidgets,
+} from "../src/search-widget-state";
 import { HGRAPH_PURPLE } from "../src/style/colors";
+import { toCypherQuery } from "../src/to-cypher-query";
+import { toQueries } from "../src/to-queries";
 
 const Home: React.FC = () => {
   const [page, setPage] = React.useState<"Explore" | "Upload">("Explore");
+
   return (
     <Box display="flex" width="100%" height="100%" flexDirection="column">
       <Box display="flex" width="100%" height="80px">
@@ -293,11 +310,231 @@ const AddPersonEmployment: React.FC = () => {
 };
 
 const Explore: React.FC = () => {
-  return <Viz />;
+  const { widgets, addWidget, setCompanyState, setPersonState } =
+    useManageWidgets();
+
+  const query = toCypherQuery(toQueries(widgets));
+
+  return (
+    <Box display="flex" flexDirection="column" gap={3} marginTop={2}>
+      <DisplaySearchWidgets
+        widgets={widgets}
+        addWidget={addWidget}
+        setCompanyState={setCompanyState}
+        setPersonState={setPersonState}
+      />
+      <Box display="flex" height="100%" width="100%">
+        <NetworkViz query={query} />
+      </Box>
+    </Box>
+  );
 };
 
-const Viz: React.FC = () => {
-  React.useLayoutEffect(() => {
+const DisplaySearchWidgets: React.FC<{
+  widgets: SearchWidgetState[];
+  addWidget: (type: "person" | "company") => void;
+  setCompanyState: (index: number, state: CompanySearchWidget) => void;
+  setPersonState: (index: number, state: PersonSearchWidget) => void;
+}> = ({ widgets, addWidget, setCompanyState, setPersonState }) => {
+  return (
+    <Paper
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 3,
+        height: "100%",
+        width: "100%",
+      }}
+    >
+      <AddWidget addWidget={addWidget} />
+      <DisplayWidgets
+        widgets={widgets}
+        setCompanyState={setCompanyState}
+        setPersonState={setPersonState}
+      />
+    </Paper>
+  );
+};
+
+const DisplayWidgets: React.FC<{
+  widgets: SearchWidgetState[];
+  setCompanyState: (index: number, state: CompanySearchWidget) => void;
+  setPersonState: (index: number, state: PersonSearchWidget) => void;
+}> = ({ widgets, setCompanyState, setPersonState }) => {
+  const { data: facets } = useFetchFacets();
+  return (
+    <Box display="flex" flexDirection="column" gap={2}>
+      {widgets.map((widget, index) => (
+        <DisplayWidget
+          key={index}
+          widget={widget}
+          index={index}
+          companyIds={facets.companyIds}
+          personIds={facets.personIds}
+          setCompanyState={setCompanyState}
+          setPersonState={setPersonState}
+        />
+      ))}
+    </Box>
+  );
+};
+
+const DisplayWidget: React.FC<{
+  widget: SearchWidgetState;
+  index: number;
+  companyIds: string[];
+  personIds: string[];
+  setCompanyState: (index: number, state: CompanySearchWidget) => void;
+  setPersonState: (index: number, state: PersonSearchWidget) => void;
+}> = ({
+  widget,
+  index,
+  companyIds,
+  personIds,
+  setPersonState,
+  setCompanyState,
+}) => {
+  switch (widget.type) {
+    case "company":
+      return (
+        <DisplayCompanyWidget
+          widget={widget}
+          index={index}
+          companyIds={companyIds}
+          setCompanyState={setCompanyState}
+        />
+      );
+    case "person":
+      return (
+        <DisplayPersonWidget
+          widget={widget}
+          index={index}
+          personIds={personIds}
+          setPersonState={setPersonState}
+        />
+      );
+    default:
+      return assertNever(widget);
+  }
+};
+
+const DisplayPersonWidget: React.FC<{
+  widget: PersonSearchWidget;
+  index: number;
+  personIds: string[];
+  setPersonState: (index: number, state: PersonSearchWidget) => void;
+}> = ({ widget, index, personIds, setPersonState }) => {
+  return (
+    <Box display="flex">
+      <Typography variant="body1">Person Query</Typography>
+      <FormControl sx={{ width: "300px" }}>
+        <Autocomplete
+          value={widget.personId ?? null}
+          options={personIds}
+          sx={{ width: 300 }}
+          renderInput={(params) => (
+            <TextField {...(params as any)} label="Person Id" />
+          )}
+          onChange={(_, personId) => {
+            setPersonState(index, {
+              ...widget,
+              personId: personId ?? undefined,
+            });
+          }}
+        />
+      </FormControl>
+      <FormControl sx={{ width: "300px" }}>
+        <InputLabel>Relationship</InputLabel>
+        <Select
+          value={widget.relationship ?? null}
+          label="Relationship"
+          onChange={(e) => {
+            setPersonState(index, {
+              ...widget,
+              relationship: e.target.value ?? undefined,
+            });
+          }}
+        >
+          <MenuItem value="WORKED_AT">WORKED_AT</MenuItem>
+          <MenuItem value="WORKS_AT">WORKS_AT</MenuItem>
+        </Select>
+      </FormControl>
+    </Box>
+  );
+};
+
+const DisplayCompanyWidget: React.FC<{
+  widget: CompanySearchWidget;
+  index: number;
+  companyIds: string[];
+  setCompanyState: (index: number, state: CompanySearchWidget) => void;
+}> = ({ widget, index, companyIds, setCompanyState }) => {
+  return (
+    <Box display="flex" gap={3} alignItems="center">
+      <Typography variant="body1">Company Query</Typography>
+
+      <FormControl sx={{ width: "300px" }}>
+        <Autocomplete
+          value={widget.companyId ?? null}
+          options={companyIds}
+          sx={{ width: 300 }}
+          renderInput={(params) => (
+            <TextField {...(params as any)} label="Company Id" />
+          )}
+          onChange={(_, companyId) => {
+            setCompanyState(index, {
+              ...widget,
+              companyId: companyId ?? undefined,
+            });
+          }}
+        />
+      </FormControl>
+      <FormControl sx={{ width: "300px" }}>
+        <InputLabel>Relationship</InputLabel>
+        <Select
+          value={widget.relationship ?? null}
+          label="Relationship"
+          onChange={(e) => {
+            setCompanyState(index, {
+              ...widget,
+              relationship: e.target.value ?? undefined,
+            });
+          }}
+        >
+          <MenuItem value="ACQUIRED">ACQUIRED</MenuItem>
+          <MenuItem value="MERGED_INTO">MERGED_INTO</MenuItem>
+        </Select>
+      </FormControl>
+    </Box>
+  );
+};
+
+const AddWidget: React.FC<{
+  addWidget: (type: "company" | "person") => void;
+}> = ({ addWidget }) => {
+  const [type, setType] = React.useState<"company" | "person">("company");
+  return (
+    <Box display="flex" width="250px" gap={2} flexDirection="column">
+      <FormControl fullWidth>
+        <InputLabel>Query type</InputLabel>
+        <Select
+          value={type}
+          label="Add query"
+          onChange={(e) => setType(e.target.value as "company" | "person")}
+        >
+          <MenuItem value={"company"}>Company query</MenuItem>
+          <MenuItem value={"person"}>Person query</MenuItem>
+        </Select>
+      </FormControl>
+      <Button variant="contained" onClick={() => addWidget(type)}>
+        Add new query widget
+      </Button>
+    </Box>
+  );
+};
+
+const NetworkViz: React.FC<{ query: CypherQuery }> = ({ query }) => {
+  React.useEffect(() => {
     const init = async () => {
       const { NeoVis } = await import("neovis.js");
 
@@ -338,17 +575,12 @@ const Viz: React.FC = () => {
             label: "label",
           },
         },
-
-        initialCypher: `
-        MATCH (n)
-OPTIONAL MATCH (n)-[r]-()
-RETURN n, r
-        `,
+        initialCypher: query,
       });
       neoViz.render();
     };
     init();
-  }, []);
+  }, [query]);
 
   return <Box id="#neo4jd3" display="flex" width="100%" height="900px"></Box>;
 };
